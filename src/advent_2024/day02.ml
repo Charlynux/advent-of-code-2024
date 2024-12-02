@@ -34,11 +34,8 @@ let check_removing_one pred xs =
   let rec loop viewed todos =
     match (todos) with
       [] -> false
-    | h::tl ->
-       if (pred (viewed@tl)) then
-         true
-       else
-         loop (viewed@[h]) tl in
+    | _::tl when pred (viewed@tl) -> true
+    | h::tl -> loop (viewed@[h]) tl in
   loop [] xs;;
 
 check_removing_one is_safe [1;3;2;4;5];;
