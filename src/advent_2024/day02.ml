@@ -24,8 +24,31 @@ let example_input =
 
 let solve_part1 input =
   input
-|> List.map read_numbers
+  |> List.map read_numbers
 |> List.filter is_safe
 |> List.length;;
 
 solve_part1 (read_lines "../../data/day02.input");;
+
+let check_removing_one pred xs =
+  let rec loop viewed todos =
+    match (todos) with
+      [] -> false
+    | h::tl ->
+       if (pred (viewed@tl)) then
+         true
+       else
+         loop (viewed@[h]) tl in
+  loop [] xs;;
+
+check_removing_one is_safe [1;3;2;4;5];;
+check_removing_one is_safe [9;7;6;2;1];;
+
+let solve_part2 input =
+  input
+  |> List.map read_numbers
+  |> List.filter (fun ns -> (is_safe ns) || (check_removing_one is_safe ns))
+  |> List.length;;
+
+solve_part2 example_input;;
+solve_part2 (read_lines "../../data/day02.input");;
