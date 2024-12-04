@@ -117,8 +117,8 @@ let is_mas map a_point diag =
     | _ -> false;;
 
 let is_xmas map a_point =
-  is_mas map a_point TopDown
-  && is_mas map a_point DownTop;;
+  let is_mas_in = is_mas map a_point in
+  is_mas_in TopDown && is_mas_in DownTop;;
 
 let a_points map =
   map
