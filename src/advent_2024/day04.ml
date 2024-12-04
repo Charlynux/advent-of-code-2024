@@ -103,25 +103,22 @@ solve_part1 example_map |> List.length;;
 
 read_lines "../../data/day04.input" |> parse_input |> solve_part1 |> List.length;;
 
-let is_correct2 map (p, c) = is_correct map (p, c, (0, 0));;
+type diagonale = TopDown | DownTop;;
 
-let x_directions = [((-1,-1),(1,1)); ((-1,1),(1,-1))];;
+let diagonale_to_direction = function
+  | TopDown -> ((-1,1),(1,-1))
+  | DownTop -> ((-1,-1),(1,1));;
 
-let expand_xmas p =
-  x_directions
-  |> List.map
-       (fun (p', p'') ->
-         [[((move p p'), 'M'); ((move p p''), 'S')];
-          [((move p p'), 'S'); ((move p p''), 'M')]]);;
+let is_mas map a_point diag =
+  let (p, p') = diagonale_to_direction diag in
+  match (PointsMap.find_opt (move a_point p) map,
+         PointsMap.find_opt (move a_point p') map) with
+    (Some 'M', Some 'S') | (Some 'S', Some 'M') -> true
+    | _ -> false;;
 
-let is_xmas map directions_rules =
-  List.for_all
-    (** Pour chaque direction, on trouve M et S à une des deux positions possibles.*)
-    (List.exists (List.for_all (is_correct2 map)))
-    directions_rules;;
-
-expand_xmas (2, 1)
-|> is_xmas example_map;;
+let is_xmas map a_point =
+  is_mas map a_point TopDown
+  && is_mas map a_point DownTop;;
 
 let a_points map =
   map
@@ -134,7 +131,6 @@ a_points example_map;;
 let solve_part2 map =
   map
   |> a_points
-  |> List.map expand_xmas
   |> List.filter (is_xmas map)
   |> List.length;;
 
