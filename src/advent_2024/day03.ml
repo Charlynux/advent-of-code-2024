@@ -60,10 +60,8 @@ let rec aggregate_ops enabled xs =
     [] -> []
   | Do::tl -> aggregate_ops true tl
   | Dont::tl -> aggregate_ops false tl
-  | Mult(a,b)::tl -> if enabled then
-                       (a*b)::(aggregate_ops enabled tl)
-                     else
-                       aggregate_ops enabled tl;;
+  | Mult(a,b)::tl when enabled -> (a*b)::(aggregate_ops enabled tl)
+  | Mult(a,b)::tl -> aggregate_ops enabled tl;;
 
 aggregate_ops true (find_ops example_input2);;
 
