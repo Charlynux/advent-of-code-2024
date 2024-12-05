@@ -49,13 +49,35 @@ let is_valid rules update =
     | _::tl -> false
   in loop update;;
 
+let middle update = List.nth update ((List.length update) / 2);;
+
 let solve_part1 input =
   let (rules, updates) = parse_input (read_lines input) in
     updates
     |> List.filter (is_valid rules)
-    |> List.map (fun update -> List.nth update ((List.length update) / 2))
+    |> List.map middle
     |> list_sum;;
 
 
 solve_part1 "../../data/day05-example.input";;
 solve_part1 "../../data/day05.input";;
+
+let sort_fn rules =
+  (fun a b ->
+    if (List.exists (fun r -> r = (a, b)) rules) then
+      1
+    else if (List.exists (fun r -> r = (b, a)) rules) then
+      -1
+    else
+      0);;
+
+let solve_part2 input =
+  let (rules, updates) = parse_input (read_lines input) in
+  updates
+  |> List.filter (fun u -> not (is_valid rules u))
+  |> List.map (List.sort (sort_fn rules))
+  |> List.map middle
+  |> list_sum;;
+
+solve_part2 "../../data/day05-example.input";;
+solve_part2 "../../data/day05.input";;
