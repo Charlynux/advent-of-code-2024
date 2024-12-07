@@ -3,7 +3,22 @@ open Utils;;
 
 #load "str.cma";;
 
-let is_solvable target numbers =
+let concatenation a b =
+  int_of_string
+    (String.cat (string_of_int a) (string_of_int b));;
+
+type operator =
+  | Add
+  | Multiplication
+  | Concatenation;;
+
+let calculate operator a b =
+  match (operator) with
+    Add -> a + b
+  | Multiplication -> a * b
+  | Concatenation -> concatenation a b;;
+
+let is_solvable operators target numbers =
   let rec loop current numbers =
     if (current > target) then
       (*
@@ -15,13 +30,15 @@ let is_solvable target numbers =
       match (numbers) with
         [] -> current == target
       | n::tl ->
-         loop (current * n) tl || loop (current + n) tl
+         List.exists
+           (fun op -> loop (calculate op current n) tl)
+           operators
   in
   loop (List.hd numbers) (List.tl numbers);;
 
-is_solvable 190 [10; 19];;
-is_solvable 3267 [81; 40; 27];;
-is_solvable 7290 [6; 8; 6;15];;
+is_solvable [Add;Multiplication] 190 [10; 19];;
+is_solvable [Add;Multiplication] 3267 [81; 40; 27];;
+is_solvable [Add;Multiplication] 7290 [6; 8; 6;15];;
 
 let parse_line line =
   let [target; numbers] = String.split_on_char ':' line in
@@ -32,12 +49,21 @@ let parse_line line =
 
 parse_line "7290: 6 8 6 15";;
 
-let solve_part1 lines =
+let solve_part operators lines =
+  let test_fn = is_solvable operators in
   lines
   |> List.map parse_line
-  |> List.filter (fun (target, numbers) -> is_solvable target numbers)
+  |> List.filter (fun (target, numbers) -> test_fn target numbers)
   |> List.map fst
   |> list_sum;;
 
+let solve_part1 = solve_part [Add;Multiplication];;
+
 solve_part1 (read_lines "../../data/day07-example.input");;
 solve_part1 (read_lines "../../data/day07.input");;
+
+
+let solve_part2 = solve_part [Add;Multiplication;Concatenation];;
+
+solve_part2 (read_lines "../../data/day07-example.input");;
+solve_part2 (read_lines "../../data/day07.input");;
