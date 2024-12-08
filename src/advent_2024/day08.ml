@@ -9,18 +9,17 @@ let update_assoc l k v =
   | Some vs -> (k,v::vs)
                ::(List.remove_assoc k l);;
 
+let update_acc_fn acc pos = function
+  | '.' -> acc
+  | c -> update_assoc acc c pos;;
+
 let parse_line acc y line =
   let rec loop acc x s =
     if (String.length s = 0) then
       acc
     else
-      let c = String.get s 0 in
-      let new_acc =  if (c == '.') then
-                       acc
-                     else
-                       update_assoc acc c (x,y) in
       loop
-        new_acc
+        (update_acc_fn acc (x,y) (String.get s 0))
         (x + 1)
         (String.sub s 1 ((String.length s) - 1))
      in

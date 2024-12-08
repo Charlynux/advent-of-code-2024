@@ -46,22 +46,24 @@ type input = {
     dimensions: point;
   };;
 
+let update_acc_fn acc pos = function
+    '^' -> { guard = {pos = pos; direction = Up};
+             obstacles = acc.obstacles;
+             dimensions = acc.dimensions}
+  | '#' -> { guard = acc.guard;
+             obstacles = PointsSet.add pos acc.obstacles;
+             dimensions = acc.dimensions}
+  | _ -> acc;;
+
 let parse_line acc y line =
   let rec loop acc x s =
     if (String.length s = 0) then
       acc
     else
       loop
-      (match (String.get s 0) with
-         '^' -> { guard = {pos = (x,y); direction = Up};
-                  obstacles = acc.obstacles;
-                  dimensions = acc.dimensions}
-       | '#' -> { guard = acc.guard;
-                  obstacles = PointsSet.add (x,y) acc.obstacles;
-                  dimensions = acc.dimensions}
-       | _ -> acc)
-      (x + 1)
-      (String.sub s 1 ((String.length s) - 1)) in
+        (update_acc_fn acc (x,y) (String.get s 0))
+        (x + 1)
+        (String.sub s 1 ((String.length s) - 1)) in
   loop acc 0 line;;
 
 let parse_input lines =
