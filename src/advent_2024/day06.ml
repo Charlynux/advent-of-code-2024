@@ -83,6 +83,13 @@ let turn_right ({pos; direction} : guard) =
                 | Right -> Down
                 | Left -> Up)};;
 
+let guard_move obstacles guard =
+  let next_pos = move_forward(guard) in
+  if (PointsSet.mem next_pos obstacles) then
+    turn_right(guard)
+  else
+    {pos = next_pos; direction = guard.direction};;
+
 let exit_from_map ({guard; obstacles; dimensions} : input) =
   let rec loop points guard =
     if (is_out dimensions guard.pos) then
@@ -90,11 +97,7 @@ let exit_from_map ({guard; obstacles; dimensions} : input) =
     else
       loop
         (PointsSet.add guard.pos points)
-        (let next_pos = move_forward(guard) in
-          if (PointsSet.mem next_pos obstacles) then
-            turn_right(guard)
-          else
-            {pos = next_pos; direction = guard.direction})
+        (guard_move obstacles guard)
   in
   loop PointsSet.empty guard;;
 
