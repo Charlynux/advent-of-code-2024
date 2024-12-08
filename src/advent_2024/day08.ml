@@ -51,13 +51,13 @@ let find_antinodes (x, y) (x', y') =
 find_antinodes (5, 5) (4, 3);;
 (* (3, 1) (6, 7)*)
 
-let rec pairing_antennas = function
+let rec pairing_antennas f = function
     [] -> []
   | [a] -> []
-  | a :: tl -> (List.concat_map (find_antinodes a) tl)
-               @(pairing_antennas tl);;
+  | a :: tl -> (List.concat_map (f a) tl)
+               @(pairing_antennas f tl);;
 
-pairing_antennas [(5, 5);(4, 3);(8,4)];;
+pairing_antennas find_antinodes [(5, 5);(4, 3);(8,4)];;
 
 let is_inbound (max_x, max_y) (x, y) =
  (x >= 0) && (x < max_x) && (y >= 0) && (y < max_y);;
@@ -70,7 +70,7 @@ let compare_points (x0,y0) (x1,y1) =
 let solve_part1 (dimensions, antennas) =
   antennas
   |> List.map snd
-  |> List.concat_map pairing_antennas
+  |> List.concat_map (pairing_antennas find_antinodes)
   |> List.filter (is_inbound dimensions)
   |> List.sort_uniq compare_points;;
 
@@ -83,4 +83,42 @@ solve_part1 example_input |> List.length;;
 
 parse_input (read_lines "../../data/day08.input")
 |> solve_part1
+|> List.length;;
+
+let move_point (x, y) (x', y') = (x + x', y + y');;
+
+let move_until_outbound dimensions offset pos =
+  let rec loop pos =
+    if (is_inbound dimensions pos) then
+      pos::(loop (move_point offset pos))
+    else
+      [] in
+  loop (move_point offset pos);;
+
+let find_antinodes_part2 dimensions (x, y) (x', y') =
+  let offset_x = x' - x
+  and offset_y = y' - y in
+  (move_until_outbound dimensions (-offset_x,-offset_y) (x, y))
+  @(move_until_outbound dimensions (offset_x,offset_y) (x', y'));;
+
+find_antinodes_part2 (10, 10) (1, 2) (0, 0);;
+(* (2, 4) (3, 6) (4, 8)*)
+
+pairing_antennas (find_antinodes_part2 (10, 10)) [(0,0);(1,2);(3,1)];;
+
+let solve_part2 (dimensions, antennas) =
+  antennas
+  |> List.map snd
+  |> List.concat_map (fun antennas ->
+         (**
+            In fact, the three T-frequency antennas are all exactly in line with two antennas, so they are all also antinodes!
+          *)
+         antennas@
+         (pairing_antennas (find_antinodes_part2 dimensions) antennas))
+  |> List.sort_uniq compare_points;;
+
+solve_part2 example_input |> List.length;;
+
+parse_input (read_lines "../../data/day08.input")
+|> solve_part2
 |> List.length;;
