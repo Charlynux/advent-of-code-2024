@@ -106,16 +106,25 @@ let guard_move obstacles guard =
   else
     {pos = next_pos; direction = guard.direction};;
 
-let exit_from_map ({guard; obstacles; dimensions} : input) =
+type move_result =
+  | Exit of GuardsSet.t
+  | LoopFound;;
+
+let move_guard_to_end dimensions obstacles guard =
   let rec loop points guard =
-    if (is_out dimensions guard.pos) then
-      points
-    else
-      loop
+    match (is_out dimensions guard.pos, GuardsSet.mem guard points) with
+      (true, _) -> Exit points
+    | (_, true) -> LoopFound
+    | _ -> loop
         (GuardsSet.add guard points)
         (guard_move obstacles guard)
   in
   loop GuardsSet.empty guard;;
+
+let exit_from_map ({guard; obstacles; dimensions} : input) =
+  match (move_guard_to_end dimensions obstacles guard) with
+    Exit points -> points
+  | _ -> raise Not_found;;
 
 let solve_part1 lines =
   lines
@@ -128,3 +137,11 @@ let solve_part1 lines =
 
 solve_part1 (read_lines "../../data/day06-example.input");;
 solve_part1 (read_lines "../../data/day06.input");;
+
+(* Test Loop detection *)
+let {guard; obstacles; dimensions} = parse_input (read_lines "../../data/day06-example.input") in
+    move_guard_to_end
+      dimensions
+      (PointsSet.add (3,6) obstacles)
+      guard
+;;
