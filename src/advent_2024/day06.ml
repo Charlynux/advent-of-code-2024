@@ -4,6 +4,11 @@ open Utils;;
 #load "str.cma";;
 
 type direction = Up | Right | Left | Down;;
+let direction_offset = function
+  | Up -> (0, -1)
+  | Down -> (0, 1)
+  | Right -> (1, 0)
+  | Left -> (-1, 0);;
 
 type point = int * int;;
 module Point = struct
@@ -19,6 +24,21 @@ type guard = {
     pos : point;
     direction : direction;
   };;
+
+module Guard = struct
+  type t = guard
+  let compare g0 g1 =
+    match (Point.compare g0.pos g1.pos) with
+      0 -> (Point.compare
+              (direction_offset g0.direction)
+              (direction_offset g1.direction))
+    | c -> c
+end;;
+module GuardsSet = Set.Make(Guard);;
+
+[{pos=(0,0);direction=Up};{pos=(0,0);direction=Down};{pos=(0,0);direction=Up}]
+|> GuardsSet.of_list
+|> GuardsSet.cardinal;;
 
 type input = {
     obstacles : PointsSet.t;
@@ -69,11 +89,7 @@ let move (x,y) (x',y') = (x+x',y+y');;
 let move_forward ({pos;direction} : guard) =
   move
     pos
-  (match (direction) with
-     Up -> (0, -1)
-   | Down -> (0, 1)
-   | Right -> (1, 0)
-   | Left -> (-1, 0));;
+    (direction_offset direction);;
 
 let turn_right ({pos; direction} : guard) =
   {pos = pos;
@@ -84,7 +100,7 @@ let turn_right ({pos; direction} : guard) =
                 | Left -> Up)};;
 
 let guard_move obstacles guard =
-  let next_pos = move_forward(guard) in
+  let next_pos = move_forward guard in
   if (PointsSet.mem next_pos obstacles) then
     turn_right(guard)
   else
@@ -96,17 +112,19 @@ let exit_from_map ({guard; obstacles; dimensions} : input) =
       points
     else
       loop
-        (PointsSet.add guard.pos points)
+        (GuardsSet.add guard points)
         (guard_move obstacles guard)
   in
-  loop PointsSet.empty guard;;
+  loop GuardsSet.empty guard;;
 
 let solve_part1 lines =
   lines
   |> parse_input
   |> exit_from_map
-  |> PointsSet.cardinal;;
-
+  |> GuardsSet.to_list
+  |> List.map (fun g -> g.pos)
+  |> List.sort_uniq Point.compare
+  |> List.length;;
 
 solve_part1 (read_lines "../../data/day06-example.input");;
 solve_part1 (read_lines "../../data/day06.input");;
