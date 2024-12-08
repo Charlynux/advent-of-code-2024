@@ -145,3 +145,29 @@ let {guard; obstacles; dimensions} = parse_input (read_lines "../../data/day06-e
       (PointsSet.add (3,6) obstacles)
       guard
 ;;
+
+let check_for_loop input new_obstacle =
+  match (move_guard_to_end
+           input.dimensions
+           (PointsSet.add new_obstacle input.obstacles)
+           input.guard) with
+    LoopFound -> true
+   |_ -> false;;
+
+let solve_part2 lines =
+  let input = parse_input lines in
+  let new_obstacles = input
+                      |> exit_from_map
+                      |> GuardsSet.to_list
+                      |> List.map move_forward
+                      |> PointsSet.of_list
+                      |> (fun ps -> PointsSet.diff ps input.obstacles) in
+  new_obstacles
+  |> PointsSet.to_list
+  |> List.filter (check_for_loop input)
+  |> List.sort_uniq Point.compare
+  |> List.length;;
+
+solve_part2 (read_lines "../../data/day06-example.input");;
+solve_part2 (read_lines "../../data/day06.input");;
+(** SUPER LONG !!! *)
