@@ -50,8 +50,7 @@ let starting_points map =
   map
   |> PointsMap.bindings
   |> List.filter (fun (_, c) -> c == 0)
-  |> List.map
-       (fun x -> PointsSet.of_list [fst x]);;
+  |> List.map (fun x -> [fst x]);;
 
 starting_points example_map;;
 starting_points example1_map;;
@@ -66,10 +65,8 @@ let is_correct map n p =
 let step map n trailheads =
   List.map (fun positions ->
          positions
-         |> PointsSet.to_list
          |> List.concat_map (fun p -> List.map (move p) directions)
          |> List.filter (fun p -> is_correct map n p)
-         |> PointsSet.of_list
        ) trailheads;;
 
 let found_trailheads map =
@@ -85,33 +82,17 @@ let found_trailheads map =
 let solve_part1 map =
   map
   |> found_trailheads
-  |> List.map PointsSet.cardinal
+  |> List.map
+       (fun ps -> ps |> PointsSet.of_list |> PointsSet.cardinal)
   |> list_sum;;
 
 solve_part1 example_map;;
 solve_part1 example0_map;;
 solve_part1 (parse_input (read_lines "../../data/day10.input"));;
 
-let step_part2 map n trailheads =
-  List.map (fun positions ->
-      positions
-      |> List.concat_map (fun p -> List.map (move p) directions)
-      |> List.filter (fun p -> is_correct map n p)
-    ) trailheads;;
-
-let found_trailheads_part2 map =
-  let rec loop n currents =
-    let n' = n + 1 in
-    let nexts = step_part2 map n' currents in
-    if (n' == 9) then
-      nexts
-    else
-      loop n' nexts in
-  loop 0 (List.map PointsSet.to_list (starting_points map))
-
 let solve_part2 map =
   map
-  |> found_trailheads_part2
+  |> found_trailheads
   |> List.map List.length
   |> list_sum;;
 
