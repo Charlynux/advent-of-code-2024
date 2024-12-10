@@ -91,3 +91,30 @@ let solve_part1 map =
 solve_part1 example_map;;
 solve_part1 example0_map;;
 solve_part1 (parse_input (read_lines "../../data/day10.input"));;
+
+let step_part2 map n trailheads =
+  List.map (fun positions ->
+      positions
+      |> List.concat_map (fun p -> List.map (move p) directions)
+      |> List.filter (fun p -> is_correct map n p)
+    ) trailheads;;
+
+let found_trailheads_part2 map =
+  let rec loop n currents =
+    let n' = n + 1 in
+    let nexts = step_part2 map n' currents in
+    if (n' == 9) then
+      nexts
+    else
+      loop n' nexts in
+  loop 0 (List.map PointsSet.to_list (starting_points map))
+
+let solve_part2 map =
+  map
+  |> found_trailheads_part2
+  |> List.map List.length
+  |> list_sum;;
+
+solve_part2 example_map;;
+solve_part2 example0_map;;
+solve_part2 (parse_input (read_lines "../../data/day10.input"));;
