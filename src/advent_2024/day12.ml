@@ -56,7 +56,7 @@ let neighbors p = List.map (move p) directions;;
 let find_next_region map =
   let (pos, c) = PointsMap.find_first (fun _ -> true) map in
   let rec loop points map = function
-    | [] -> (map, points)
+    | [] -> (map, PointsSet.to_list points)
     | opens ->
        let points = PointsSet.union
                       points
@@ -66,7 +66,8 @@ let find_next_region map =
        loop points map
          (opens
           |> List.concat_map neighbors
-          |> List.filter (is_correct map c)) in
+          |> List.filter (is_correct map c)
+          |> PointsSet.of_list |> PointsSet.to_list) in
   loop PointsSet.empty map [pos];;
 
 let rec find_regions map =
@@ -79,3 +80,24 @@ let rec find_regions map =
 find_regions example1_map;;
 find_regions example2_map;;
 find_regions example3_map;;
+let the_map = parse_input (read_lines "../../data/day12.input");;
+
+find_regions the_map;;
+
+let calculate_perimeter map (region : Point.t list) =
+  let c = PointsMap.find (List.hd region) map in
+  region
+  |> List.concat_map neighbors
+  |> List.filter (fun p -> not (is_correct map c p))
+  |> List.length;;
+
+let solve_part1 map =
+  find_regions map
+  |> List.map (fun p -> (calculate_perimeter map p) * List.length p)
+  |> list_sum;;
+
+solve_part1 example1_map;;
+solve_part1 example2_map;;
+solve_part1 example3_map;;
+
+solve_part1 (parse_input (read_lines "../../data/day12.input"));;
