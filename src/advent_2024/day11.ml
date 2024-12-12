@@ -32,4 +32,44 @@ let solve_part1 s = s |> blink_n 25 |> List.length;;
 
 solve_part1 example_input;;
 solve_part1 input;;
-s
+
+(*
+RECHERCHES INFRUCTUEUSES AUTOUR DE LA MEMOIZATION...
+ *)
+
+type individual_blinks = int * int;;
+type work = int * int list;;
+
+let split ((blinks, stones) : work) : individual_blinks list =
+  List.map (fun stone -> (blinks, stone)) stones;;
+
+(*
+  https://cs3110.GitHub.io/textbook/chapters/ds/memoization.html#memoization-using-higher-order-functions
+ *)
+let memoed_blink_init n =
+  let h = Hashtbl.create n in
+  let rec memoed ((blinks, ns) as w) =
+    try Hashtbl.find h w
+    with Not_found ->
+      match (blinks) with
+      | 0 -> ns
+      | 1 -> List.concat_map blink ns
+      | x -> let result =
+               memoed (x - 1, memoed (1, ns)) in
+          Hashtbl.add h w result;
+          result in
+  memoed;;
+
+let rec run (blink_fn : individual_blinks -> work) = function
+  | [] -> []
+  | todos ->
+     let (dones, remaining) =
+       todos
+       |> List.concat_map (fun w -> split w)
+       |> List.map blink_fn
+       |> List.partition (fun w -> (fst w) == 0) in
+     (List.concat_map snd dones)
+     @(run blink_fn remaining);;
+
+let fn = (memoed_blink_init 10000) in
+    fn (40, example_input);;
